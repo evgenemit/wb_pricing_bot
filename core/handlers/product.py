@@ -118,7 +118,7 @@ async def tracked_products(msg: types.Message, db: Database):
         await msg.answer(
             f'{emoji.emojize(":package:")} {new_data[0]}\n' \
             f'Цена: <b>{new_data[1]}</b> BYN {price_symbol}\n\n' \
-            f'Ожидаемая цена: <b>{product.get('desired_price')}</b> BYN',
+            f'Ожидаемая цена: <b>{product.get("desired_price")}</b> BYN',
             reply_markup=inline.product_keyboard(product.get('id'))
         )
 
