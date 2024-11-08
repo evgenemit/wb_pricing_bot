@@ -42,11 +42,12 @@ async def add_product_get_article(msg: types.Message, state: FSMContext):
         name, price = await wb_parser.get_price(article)
         if name is None or price is None:
             await msg.answer(
-                'Не найдено\nПопробуй ещё раз',
+                f'{emoji.emojize(":red_circle:")} Не найдено' \
+                '\nПопробуй ещё раз',
                 reply_markup=reply.cancle_keyboard('Артикул')
             )
             return
-        await msg.answer(f'Найдено {emoji.emojize(":green_circle:")}')
+        await msg.answer(f'{emoji.emojize(":green_circle:")} Найдено')
         await state.update_data(name=name)
         await state.update_data(price=price)
         await msg.answer(
@@ -92,7 +93,7 @@ async def add_product_get_price(msg: types.Message, state: FSMContext, db: Datab
             desired_price,
             price
         )
-        await msg.answer(f'Добавлено {emoji.emojize(":green_circle:")}')
+        await msg.answer(f'{emoji.emojize(":green_circle:")} Добавлено')
         await main_menu(msg, state)
 
 
@@ -146,7 +147,7 @@ async def product_update_price(msg: types.Message, state: FSMContext, db: Databa
         return
     product_id = await state.get_value('product_id')
     await db.update_desired_price(product_id, desired_price)
-    await msg.answer(f'Цена обновлена {emoji.emojize(":green_circle:")}')
+    await msg.answer(f'{emoji.emojize(":green_circle:")} Цена обновлена')
     await main_menu(msg, state)
 
 
@@ -156,5 +157,5 @@ async def product_delete(call: types.CallbackQuery, db: Database):
     product_id = call.data.replace('pr_delete_', '')
     await db.delete_product(product_id)
     await call.message.answer(
-        f'Удалено {emoji.emojize(":green_circle:")}'
+        f'{emoji.emojize(":green_circle:")} Удалено'
     )
