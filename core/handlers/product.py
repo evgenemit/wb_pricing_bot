@@ -136,7 +136,7 @@ async def product_update_request(call: types.CallbackQuery, state: FSMContext):
     )
     await state.set_state(UpdateProductStates.GET_NEW_PRICE)
     product_id = call.data.replace('pr_update_', '')
-    await state.update_data(product_id=product_id)
+    await state.update_data(product_id=product_id, call=call)
 
 
 async def product_update_price(msg: types.Message, state: FSMContext, db: Database):
@@ -148,6 +148,12 @@ async def product_update_price(msg: types.Message, state: FSMContext, db: Databa
     product_id = await state.get_value('product_id')
     await db.update_desired_price(product_id, desired_price)
     await msg.answer(f'{emoji.emojize(":green_circle:")} Цена обновлена')
+    call = await state.get_value('call')
+    old_text = call.message.text
+    old_text_split = old_text.split(' ')
+    old_text_split[-2] = str(desired_price)
+    new_text = ' '.join(old_text_split)
+    await call.message.edit_text(new_text, reply_markup=inline.product_keyboard(product_id))
     await main_menu(msg, state)
 
 
