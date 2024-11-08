@@ -99,6 +99,10 @@ async def add_product_get_price(msg: types.Message, state: FSMContext, db: Datab
 async def tracked_products(msg: types.Message, db: Database):
     """Показывает все отслеживаемые товары пользователя"""
     products = await db.get_user_products(msg.from_user.id)
+    if not products:
+        await msg.answer('Пока пусто')
+        await main_menu(msg)
+        return
     for product in products:
         new_data = await wb_parser.get_price(product.get('article'))
         await db.update_product(
@@ -121,9 +125,6 @@ async def tracked_products(msg: types.Message, db: Database):
             f'Ожидаемая цена: <b>{product.get("desired_price")}</b> BYN',
             reply_markup=inline.product_keyboard(product.get('id'))
         )
-    else:
-        await msg.answer('Пока пусто')
-        await main_menu(msg)
 
 
 async def product_update_request(call: types.CallbackQuery, state: FSMContext):
