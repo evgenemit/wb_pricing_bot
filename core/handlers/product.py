@@ -154,6 +154,7 @@ async def product_update_price(msg: types.Message, state: FSMContext, db: Databa
 async def product_delete(call: types.CallbackQuery, db: Database):
     """Удаляет товар из отслеживаемых"""
     await call.answer()
+    await call.message.delete()
     product_id = call.data.replace('pr_delete_', '')
     await db.delete_product(product_id)
     await call.message.answer(
