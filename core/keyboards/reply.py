@@ -23,7 +23,7 @@ def cancle_keyboard(placeholder: str = ''):
     )
 
 
-def yes_or_no():
+def yes_or_no(placeholder: str = ''):
     """Клавиутара Да или Нет"""
     kb = ReplyKeyboardBuilder()
     kb.button(text='Да')
@@ -32,5 +32,5 @@ def yes_or_no():
     kb.adjust(2, 1)
     return kb.as_markup(
          resize_keyboard=True,
-        input_field_placeholder='Правильно?'
+        input_field_placeholder=placeholder
     )

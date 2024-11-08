@@ -18,10 +18,10 @@ async def start(msg: types.Message, db: Database):
     """Команда /start"""
     await msg.answer(
         f'Привет, {msg.from_user.first_name}. '
-        'Этот бот будет следить за ценами на товары в Wildberries.'
+        'Этот бот будет следить за ценами на товары в Wildberries.',
+        reply_markup=reply.main_keyboard()
     )
     await db.update_user(msg.from_user.id, msg.from_user.first_name)
-    await main_menu(msg)
 
 
 async def add_product(msg: types.Message, state: FSMContext):
@@ -53,7 +53,7 @@ async def add_product_get_article(msg: types.Message, state: FSMContext):
             f'<b>{name}</b>\n' \
             f'Цена на данный момент: <b>{price}</b> BYN' \
             '\nПродолжить?',
-            reply_markup=reply.yes_or_no()
+            reply_markup=reply.yes_or_no('Продолжить?')
         )
         await state.set_state(AddProductStates.CONFIRM)
     else:
@@ -101,7 +101,6 @@ async def tracked_products(msg: types.Message, db: Database):
     products = await db.get_user_products(msg.from_user.id)
     if not products:
         await msg.answer('Пока пусто')
-        await main_menu(msg)
         return
     for product in products:
         new_data = await wb_parser.get_price(product.get('article'))
