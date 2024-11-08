@@ -121,6 +121,9 @@ async def tracked_products(msg: types.Message, db: Database):
             f'Ожидаемая цена: <b>{product.get("desired_price")}</b> BYN',
             reply_markup=inline.product_keyboard(product.get('id'))
         )
+    else:
+        await msg.answer('Пока пусто')
+        await main_menu(msg)
 
 
 async def product_update_request(call: types.CallbackQuery, state: FSMContext):
