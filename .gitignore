@@ -2,3 +2,4 @@ venv/
 .env
 __pycache__
 core/services/database_create_tables.py
+logs.txt
