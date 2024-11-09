@@ -1,11 +1,13 @@
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
 
 
-def main_keyboard():
+def main_keyboard(is_admin: bool):
     """Клавиутрура главного меню"""
     kb = ReplyKeyboardBuilder()
     kb.button(text='Отслеживаемые')
     kb.button(text='Добавить')
+    if is_admin:
+        kb.button(text='Логи')
     kb.adjust(1)
     return kb.as_markup(
         resize_keyboard=True

@@ -18,9 +18,21 @@ class Database:
         async with self.connect.acquire() as connect:
             return await connect.fetchrow(text)
 
-    async def get_admins(self) -> list:
+    async def get_admins(self) -> tuple:
         admins_ids = await self.fetch("SELECT tg_user_id FROM admins;")
         return tuple(map(lambda x: x.get('tg_user_id'), admins_ids))
+
+
+    async def is_admin(self, tg_user_id) -> bool:
+        """Проверяет является ли пользователем администратором"""
+        user_is_admin = await self.fetchrow(
+            f"""
+            SELECT EXISTS
+            (SELECT 1 FROM admins WHERE tg_user_id = '{tg_user_id}');
+            """
+        )
+        return user_is_admin.get('exists', False)
+
 
     async def update_user(self, tg_user_id: int, first_name: str) -> bool:
         """Сохраняет информацию о пользователе"""

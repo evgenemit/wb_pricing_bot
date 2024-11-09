@@ -8,8 +8,8 @@ from core.keyboards import reply, inline
 from core.states import AddProductStates, UpdateProductStates
 
 
-async def main_menu(msg: types.Message, state: FSMContext = None):
-    await msg.answer('Меню', reply_markup=reply.main_keyboard())
+async def main_menu(msg: types.Message, db: Database, state: FSMContext = None):
+    await msg.answer('Меню', reply_markup=reply.main_keyboard(await db.is_admin(msg.from_user.id)))
     if state:
         await state.clear()
 
@@ -19,7 +19,7 @@ async def start(msg: types.Message, db: Database):
     await msg.answer(
         f'Привет, {msg.from_user.first_name}. '
         'Этот бот будет следить за ценами на товары в Wildberries.',
-        reply_markup=reply.main_keyboard()
+        reply_markup=reply.main_keyboard(await db.is_admin(msg.from_user.id))
     )
     await db.update_user(msg.from_user.id, msg.from_user.first_name)
 
@@ -64,7 +64,7 @@ async def add_product_get_article(msg: types.Message, state: FSMContext):
         )
 
 
-async def add_product_confirm(msg: types.Message, state: FSMContext):
+async def add_product_confirm(msg: types.Message, state: FSMContext, db: Database):
     """Подвтерждение добавления товара"""
     if msg.text == 'Да':
         await msg.answer(
@@ -74,7 +74,7 @@ async def add_product_confirm(msg: types.Message, state: FSMContext):
         await state.set_state(AddProductStates.GET_PRICE)
     else:
         await msg.answer('Хорошо, не добавляем.')
-        await main_menu(msg, state)
+        await main_menu(msg, db, state)
 
 
 async def add_product_get_price(msg: types.Message, state: FSMContext, db: Database):
@@ -97,7 +97,7 @@ async def add_product_get_price(msg: types.Message, state: FSMContext, db: Datab
         price
     )
     await msg.answer(f'{emoji.emojize(":green_circle:")} Добавлено')
-    await main_menu(msg, state)
+    await main_menu(msg, db, state)
 
 
 async def tracked_products(msg: types.Message, db: Database):
@@ -162,7 +162,7 @@ async def product_update_price(msg: types.Message, state: FSMContext, db: Databa
     await db.update_desired_price(product_id, desired_price)
     await msg.answer(f'{emoji.emojize(":green_circle:")} Цена обновлена')
     await call.message.edit_text(new_text, reply_markup=inline.product_keyboard(product_id))
-    await main_menu(msg, state)
+    await main_menu(msg, db, state)
 
 
 async def product_delete(call: types.CallbackQuery, db: Database):
