@@ -147,7 +147,7 @@ async def product_update_price(msg: types.Message, state: FSMContext, db: Databa
     call = await state.get_value('call')
     old_text = call.message.text
     old_text_split = old_text.split(' ')
-    old_price = old_text_split[-2]
+    old_price = old_text_split[-6]
     desired_price = wb_parser.str_price_to_float(msg.text)
     if desired_price == -1:
         await msg.answer('Не похоже на цену\nПопробуй ещё раз')
