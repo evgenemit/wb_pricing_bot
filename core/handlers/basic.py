@@ -35,10 +35,14 @@ async def update_all_prices(bot: Bot, db: Database):
                     tg_user_id = await db.get_tg_user_id(user_id)
                     await bot.send_message(
                         tg_user_id,
-                        f'{emoji.emojize(":check_mark_button:")}Цена снизилась!' \
+                        f'{emoji.emojize(":check_mark_button:")} ЦЕНА СНИЗИЛАСЬ!' \
                         f'\n{new_name}\n\n<b>{new_price}</b> BYN'
                     )
-                    # TODO: отмечать в базе, что уведомление показано, и больше его показывать не надо
-                    # можно для таких товаров устанавливать цену на 10% меньше от текущей, и писать об этом
-                    # Установлена новая цена для отслеживания: 10.56 BYN
+                    new_desired_price = int(product[2] * 95) / 100
+                    await db.update_desired_price(product[0], new_desired_price)
+                    await bot.send_message(
+                        tg_user_id,
+                        'Ожидаемая цена автоматически снижена на 5%'\
+                        f'\nНовая цена: <b>{new_desired_price}</b> BYN'
+                    )
         await asyncio.sleep(60 * 60 * 2)

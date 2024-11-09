@@ -82,19 +82,22 @@ async def add_product_get_price(msg: types.Message, state: FSMContext, db: Datab
     desired_price = wb_parser.str_price_to_float(msg.text)
     if desired_price == -1:
         await msg.answer('Не похоже на цену\nПопробуй ещё раз')
-    else:
-        name = await state.get_value('name')
-        price = await state.get_value('price')
-        article = await state.get_value('article')
-        await db.add_product(
-            msg.from_user.id,
-            article,
-            name,
-            desired_price,
-            price
-        )
-        await msg.answer(f'{emoji.emojize(":green_circle:")} Добавлено')
-        await main_menu(msg, state)
+        return
+    name = await state.get_value('name')
+    price = await state.get_value('price')
+    article = await state.get_value('article')
+    if price <= desired_price:
+        await msg.answer('Ожидаемая цена должна быть ниже текущей\nПопробуй ещё раз')
+        return
+    await db.add_product(
+        msg.from_user.id,
+        article,
+        name,
+        desired_price,
+        price
+    )
+    await msg.answer(f'{emoji.emojize(":green_circle:")} Добавлено')
+    await main_menu(msg, state)
 
 
 async def tracked_products(msg: types.Message, db: Database):
@@ -141,18 +144,23 @@ async def product_update_request(call: types.CallbackQuery, state: FSMContext):
 
 async def product_update_price(msg: types.Message, state: FSMContext, db: Database):
     """Обновление желаемой цены. Сохраняет новую стоимость"""
+    call = await state.get_value('call')
+    old_text = call.message.text
+    old_text_split = old_text.split(' ')
+    old_price = old_text_split[-2]
     desired_price = wb_parser.str_price_to_float(msg.text)
     if desired_price == -1:
         await msg.answer('Не похоже на цену\nПопробуй ещё раз')
         return
+    # проверяем ниже ли ожидаемая цена
+    if float(old_price) <= desired_price:
+        await msg.answer('Ожидаемая цена должна быть ниже текущей\nПопробуй ещё раз')
+        return
+    old_text_split[-2] = str(desired_price)
+    new_text = ' '.join(old_text_split)
     product_id = await state.get_value('product_id')
     await db.update_desired_price(product_id, desired_price)
     await msg.answer(f'{emoji.emojize(":green_circle:")} Цена обновлена')
-    call = await state.get_value('call')
-    old_text = call.message.text
-    old_text_split = old_text.split(' ')
-    old_text_split[-2] = str(desired_price)
-    new_text = ' '.join(old_text_split)
     await call.message.edit_text(new_text, reply_markup=inline.product_keyboard(product_id))
     await main_menu(msg, state)
 
