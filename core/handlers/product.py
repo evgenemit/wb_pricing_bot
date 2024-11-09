@@ -110,7 +110,7 @@ async def tracked_products(msg: types.Message, db: Database):
             price=new_data[1],
             name=new_data[0]
         )
-        price_diff = (new_data[1] * 100 - product.get('last_price') * 100) / 100
+        price_diff = (int(new_data[1] * 100) - int(product.get('last_price') * 100)) / 100
         if price_diff < 0:
             price_symbol = emoji.emojize(':red_triangle_pointed_down:')
             price_symbol += f' ({price_diff})'
