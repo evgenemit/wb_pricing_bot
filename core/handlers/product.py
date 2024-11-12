@@ -117,7 +117,7 @@ async def tracked_products(msg: types.Message, db: Database):
                 f'{emoji.emojize(":red_exclamation_mark:")} Нет в наличии\n',
                 reply_markup=inline.product_keyboard(product.get('id'), only_delete=True)
             )
-            return
+            continue
         await db.update_product(
             product_id=product.get('id'),
             price=new_data[1],
