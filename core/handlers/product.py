@@ -39,7 +39,7 @@ async def add_product_get_article(msg: types.Message, state: FSMContext):
     if article and article.isdigit():
         await state.update_data(article=article)
         await msg.answer('Поиск товара...')
-        name, price = await wb_parser.get_price(article)
+        name, price, _ = await wb_parser.get_price(article)
         if name is None or price is None:
             await msg.answer(
                 f'{emoji.emojize(":red_circle:")} Не найдено' \
@@ -108,7 +108,7 @@ async def tracked_products(msg: types.Message, db: Database):
         return
     for product in products:
         new_data = await wb_parser.get_price(product.get('article'))
-        if new_data[1] is None:
+        if new_data[2] is None or new_data[2] == 0:
             await msg.answer(
                 f'{emoji.emojize(":package:")} {new_data[0] or product.get("name")}\n\n'
                 f'{emoji.emojize(":red_exclamation_mark:")} Нет в наличии\n',
@@ -130,8 +130,9 @@ async def tracked_products(msg: types.Message, db: Database):
         else:
             price_symbol = ''
         await msg.answer(
-            f'{emoji.emojize(":package:")} {new_data[0]}\n' \
-            f'Цена: <b>{new_data[1]}</b> BYN {price_symbol}\n\n' \
+            f'{emoji.emojize(":package:")} {new_data[0]}\n'
+            f'Цена: <b>{new_data[1]}</b> BYN {price_symbol}\n'
+            f'<i>В наличии: {new_data[2]} шт.</i>\n\n'
             f'Ожидаемая цена: <b>{product.get("desired_price")}</b> BYN',
             reply_markup=inline.product_keyboard(product.get('id'))
         )
@@ -163,12 +164,12 @@ async def product_update_price(msg: types.Message, state: FSMContext, db: Databa
     if float(old_price) <= desired_price:
         await msg.answer('Ожидаемая цена должна быть ниже текущей\nПопробуй ещё раз')
         return
-    old_text_split[-2] = str(desired_price)
-    new_text = ' '.join(old_text_split)
+    #old_text_split[-2] = str(desired_price)
+    #new_text = ' '.join(old_text_split)
     product_id = await state.get_value('product_id')
     await db.update_desired_price(product_id, desired_price)
     await msg.answer(f'{emoji.emojize(":green_circle:")} Цена обновлена')
-    await call.message.edit_text(new_text, reply_markup=inline.product_keyboard(product_id))
+    #await call.message.edit_text(new_text, reply_markup=inline.product_keyboard(product_id))
     await main_menu(msg, db, state)
 
 

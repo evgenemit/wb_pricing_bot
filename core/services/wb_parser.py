@@ -18,6 +18,7 @@ async def get_price(article: str) -> tuple:
             data = await response.json()
             name = None
             price = None
+            count = None
             try:
                 name = data['data']['products'][0]['name']
             except (KeyError, TypeError):
@@ -27,7 +28,11 @@ async def get_price(article: str) -> tuple:
                 price /= 100
             except (KeyError, TypeError):
                 pass
-    return (name, price)
+            try:
+                count = data['data']['products'][0]['totalQuantity']
+            except (KeyError, TypeError):
+                pass
+    return (name, price, count)
 
 
 def str_price_to_float(price: str) -> float:

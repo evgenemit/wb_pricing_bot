@@ -34,15 +34,15 @@ async def update_all_prices(bot: Bot, db: Database):
         await add_logs('Проверются цены')
         data = await db.get_all_products()
         for user_id in data:
+            tg_user_id = await db.get_tg_user_id(user_id)
             products = data[user_id]
             for product in products:
-                new_name, new_price = await wb_parser.get_price(product[1])
+                new_name, new_price, count = await wb_parser.get_price(product[1])
                 if new_name is None or new_price is None:
                     await add_logs(f'Пропущен {product[1]}')
                     continue
                 if new_price <= product[2]:
                     await add_logs(f'Цена снижена: {user_id=} {new_price=} {product[2]=}')
-                    tg_user_id = await db.get_tg_user_id(user_id)
                     await bot.send_message(
                         tg_user_id,
                         f'{emoji.emojize(":check_mark_button:")} ЦЕНА СНИЗИЛАСЬ!' \
@@ -54,6 +54,12 @@ async def update_all_prices(bot: Bot, db: Database):
                         tg_user_id,
                         'Ожидаемая цена автоматически снижена на 5%'\
                         f'\nНовая цена: <b>{new_desired_price}</b> BYN'
+                    )
+                if count > 0 and count <= 3:
+                    await bot.send_message(
+                        tg_user_id,
+                        f'{emoji.emojize(":red_exclamation_mark:")} В наличии всего: <b>{count}</b> шт.'
+                        f'\n{new_name}\n\n<b>{new_price}</b> BYN'
                     )
         await add_logs('Проверены')
         await asyncio.sleep(60 * 30)
