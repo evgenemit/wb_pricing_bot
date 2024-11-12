@@ -42,7 +42,7 @@ async def add_product_get_article(msg: types.Message, state: FSMContext):
     if article and article.isdigit():
         await state.update_data(article=article)
         await msg.answer('Поиск товара...')
-        name, price, _ = await wb_parser.get_price(article)
+        name, price, _ = await wb_parser.get_product_data(article)
         if name is None or price is None:
             await msg.answer(
                 f'{emoji.emojize(":red_circle:")} Не найдено' \
@@ -110,7 +110,7 @@ async def tracked_products(msg: types.Message, db: Database):
         await msg.answer('Пока пусто')
         return
     for product in products:
-        new_data = await wb_parser.get_price(product.get('article'))
+        new_data = await wb_parser.get_product_data(product.get('article'))
         if new_data[2] is None or new_data[2] == 0:
             await msg.answer(
                 f'{emoji.emojize(":package:")} {new_data[0] or product.get("name")}\n\n'

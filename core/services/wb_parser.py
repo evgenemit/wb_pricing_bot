@@ -20,16 +20,16 @@ async def get_product_data(article: str) -> tuple:
             data = await response.json()
             try:
                 name = data['data']['products'][0]['name']
-            except KeyError:
+            except (KeyError, IndexError):
                 name = None
             try:
                 price = data['data']['products'][0]['sizes'][0]['price']['total']
                 price /= 100
-            except (KeyError, TypeError):
+            except (KeyError, TypeError, IndexError):
                 price = None
             try:
                 count = data['data']['products'][0]['totalQuantity']
-            except KeyError:
+            except (KeyError, IndexError):
                 count = None
     return name, price, count
 

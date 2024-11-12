@@ -37,7 +37,7 @@ async def update_all_prices(bot: Bot, db: Database):
             tg_user_id = await db.get_tg_user_id(user_id)
             products = data[user_id]
             for product in products:
-                new_name, new_price, _ = await wb_parser.get_price(product[1])
+                new_name, new_price, _ = await wb_parser.get_product_data(product[1])
                 if new_name is None or new_price is None:
                     await add_logs(f'Пропущен {product[1]}')
                     continue
