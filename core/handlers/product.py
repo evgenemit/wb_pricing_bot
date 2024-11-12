@@ -9,7 +9,10 @@ from core.states import AddProductStates, UpdateProductStates
 
 
 async def main_menu(msg: types.Message, db: Database, state: FSMContext = None):
-    await msg.answer('Меню', reply_markup=reply.main_keyboard(await db.is_admin(msg.from_user.id)))
+    await msg.answer(
+        'Меню',
+        reply_markup=reply.main_keyboard(await db.is_admin(msg.from_user.id))
+    )
     if state:
         await state.clear()
 
@@ -79,7 +82,7 @@ async def add_product_confirm(msg: types.Message, state: FSMContext, db: Databas
 
 async def add_product_get_price(msg: types.Message, state: FSMContext, db: Database):
     """Сохраняет информацию о товаре и желаемой стоимости"""
-    desired_price = wb_parser.str_price_to_float(msg.text)
+    desired_price = wb_parser.parse_price(msg.text)
     if desired_price == -1:
         await msg.answer('Не похоже на цену\nПопробуй ещё раз')
         return
@@ -156,7 +159,7 @@ async def product_update_price(msg: types.Message, state: FSMContext, db: Databa
     old_text = call.message.text
     old_text_split = old_text.split(' ')
     old_price = old_text_split[old_text_split.index('BYN') - 1]
-    desired_price = wb_parser.str_price_to_float(msg.text)
+    desired_price = wb_parser.parse_price(msg.text)
     if desired_price == -1:
         await msg.answer('Не похоже на цену\nПопробуй ещё раз')
         return
