@@ -16,16 +16,17 @@ async def get_price(article: str) -> tuple:
             f'{xinfo}&ab_testing=false&nm={article}'
         ) as response:
             data = await response.json()
+            name = None
+            price = None
             try:
-                if data['data']['products']:
-                    name = data['data']['products'][0]['name']
-                    price = data['data']['products'][0]['sizes'][0]['price']['total']
-                    price /= 100
-                else:
-                    return (None, None)
+                name = data['data']['products'][0]['name']
             except (KeyError, TypeError):
-                name = None
-                price = None
+                pass
+            try:
+                price = data['data']['products'][0]['sizes'][0]['price']['total']
+                price /= 100
+            except (KeyError, TypeError):
+                pass
     return (name, price)
 
 

@@ -108,6 +108,13 @@ async def tracked_products(msg: types.Message, db: Database):
         return
     for product in products:
         new_data = await wb_parser.get_price(product.get('article'))
+        if new_data[1] is None:
+            await msg.answer(
+                f'{emoji.emojize(":package:")} {new_data[0] or product.get("name")}\n\n'
+                f'{emoji.emojize(":red_exclamation_mark:")} Нет в наличии\n',
+                reply_markup=inline.product_keyboard(product.get('id'), only_delete=True)
+            )
+            return
         await db.update_product(
             product_id=product.get('id'),
             price=new_data[1],
