@@ -1,4 +1,16 @@
 import asyncpg
+from pydantic import BaseModel
+from decimal import Decimal
+
+
+class Product(BaseModel):
+    item_id: int
+    user_id: int
+    article: str
+    name: str
+    desired_price: Decimal
+    last_price: Decimal
+    notification: bool
 
 
 class Database:
@@ -22,7 +34,6 @@ class Database:
         admins_ids = await self.fetch("SELECT tg_user_id FROM admins;")
         return tuple(map(lambda x: x.get('tg_user_id'), admins_ids))
 
-
     async def is_admin(self, tg_user_id) -> bool:
         """Проверяет является ли пользователем администратором"""
         user_is_admin = await self.fetchrow(
@@ -32,7 +43,6 @@ class Database:
             """
         )
         return user_is_admin.get('exists', False)
-
 
     async def update_user(self, tg_user_id: int, first_name: str) -> bool:
         """Сохраняет информацию о пользователе"""
@@ -64,20 +74,37 @@ class Database:
             """
         )
 
-    async def get_all_products(self) -> dict:
-        """Все товары всех пользователей"""
+    async def get_all_products(self) -> dict[int, list[Product]]:
+        """
+        Формирует словарь, где ключ - id пользователя,
+        а значение - список товаров этого пользователя
+        """
         products = await self.fetch(
-            "SELECT id, user_id, article, desired_price FROM products;"
+            """
+            SELECT id AS item_id, user_id, article, name,
+            desired_price, last_price, notification FROM products;
+            """
         )
+        products = tuple(map(lambda x: Product(**x), products))
         data = {}
         for product in products:
-            user_id = product.get('user_id')
-            if user_id not in data:
-                data[user_id] = []
-            data[user_id].append(
-                (product.get('id'), product.get('article'), product.get('desired_price'))
-            )
+            if product.user_id not in data:
+                data[product.user_id] = []
+            data[product.user_id].append(product)
         return data
+
+    async def update_product_notification(
+            self,
+            product_id: int,
+            value: bool = True
+    ) -> None:
+        """Изменяет поле уведомлений для товара по его id"""
+        await self.execute(
+            f"""
+            UPDATE products SET
+            notification = {value} WHERE id = {product_id};
+            """
+        )
 
     async def get_tg_user_id(self, user_id: int) -> str:
         """Возвращает телеграм id пользователя по id в таблице"""

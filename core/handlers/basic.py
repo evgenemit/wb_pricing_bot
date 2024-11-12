@@ -4,7 +4,7 @@ import emoji
 import datetime
 from aiogram import Bot
 
-from core.services import wb_parser
+from core.services import wb_parser, answers
 from core.services.database import Database
 
 
@@ -35,32 +35,43 @@ async def update_all_prices(bot: Bot, db: Database):
         data = await db.get_all_products()
         for user_id in data:
             tg_user_id = await db.get_tg_user_id(user_id)
-            products = data[user_id]
-            for product in products:
-                new_name, new_price, count = await wb_parser.get_price(product[1])
-                if new_name is None or new_price is None:
-                    await add_logs(f'Пропущен {product[1]}')
+            for product in data[user_id]:
+                new_data = await wb_parser.get_product_data(product.article)
+                if not all(new_data):
                     continue
-                if new_price <= product[2]:
-                    await add_logs(f'Цена снижена: {user_id=} {new_price=} {product[2]=}')
+                new_name, new_price, count = new_data
+                if new_price <= product.desired_price:
+                    await add_logs(
+                        f'Цена снижена: {new_price=} article={product.article}'
+                    )
                     await bot.send_message(
                         tg_user_id,
-                        f'{emoji.emojize(":check_mark_button:")} ЦЕНА СНИЗИЛАСЬ!' \
-                        f'\n{new_name}\n\n<b>{new_price}</b> BYN'
+                        answers.price_fall(new_name, new_price)
                     )
                     new_desired_price = int(new_price * 95) / 100
-                    await db.update_desired_price(product[0], new_desired_price)
+                    await db.update_desired_price(
+                        product.item_id,
+                        new_desired_price
+                    )
                     await bot.send_message(
                         tg_user_id,
-                        'Ожидаемая цена автоматически снижена на 5%'\
-                        f'\nНовая цена: <b>{new_desired_price}</b> BYN'
+                        answers.price_fall_new_desired(new_desired_price)
                     )
-                if count > 0 and count <= 3:
+                # если в наличии <= 3 шт товара
+                # и уведомление ещё не отправлялось
+                if count > 0 and count <= 3 and not product.notification:
                     await bot.send_message(
                         tg_user_id,
-                        f'{emoji.emojize(":red_exclamation_mark:")} В наличии всего: <b>{count}</b> шт.'
-                        f'\n{new_name}\n\n<b>{new_price}</b> BYN'
+                        answers.product_count(count, new_name, new_price)
                     )
+                    await db.update_product_notification(
+                        product.item_id, True
+                    )
+                elif product.notification and count > 3:
+                    await db.update_product_notification(
+                        product.item_id, False
+                    )
+
         await add_logs('Проверены')
         await asyncio.sleep(60 * 30)
 
