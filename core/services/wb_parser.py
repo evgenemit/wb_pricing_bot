@@ -1,7 +1,10 @@
 import aiohttp
+from decimal import Decimal
 
 
-async def get_product_data(article: str) -> tuple:
+async def get_product_data(
+        article: str
+) -> tuple[str | None, Decimal | None, int | None]:
     async with aiohttp.ClientSession() as session:
         # получаем данные геолокации (xinfo) для запроса информации о товаре
         async with session.get(
@@ -19,25 +22,26 @@ async def get_product_data(article: str) -> tuple:
         ) as response:
             data = await response.json()
             try:
-                name = data['data']['products'][0]['name']
+                data = data['data']['products'][0]
             except (KeyError, IndexError):
-                name = None
+                return None, None, None
+            name = data.get('name')
+            count = data.get('totalQuantity')
             try:
-                price = data['data']['products'][0]['sizes'][0]['price']['total']
+                price = data['sizes'][0]['price']['total']
                 price /= 100
-            except (KeyError, TypeError, IndexError):
+                price = Decimal(str(price))
+            except (KeyError, IndexError, TypeError):
                 price = None
-            try:
-                count = data['data']['products'][0]['totalQuantity']
-            except (KeyError, IndexError):
-                count = None
     return name, price, count
 
 
-def parse_price(price: str) -> float:
+def parse_price(price: str) -> Decimal:
     if not price:
         return -1
     price = price.replace(',', '.').replace(' ', '')
     if not price.replace('.', '').isdigit():
         return -1
-    return float(price)
+    if '.' not in price:
+        price += '.0'
+    return Decimal(price)
