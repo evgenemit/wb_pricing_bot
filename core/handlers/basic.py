@@ -1,6 +1,5 @@
 import aiofiles
 import asyncio
-import emoji
 import datetime
 from aiogram import Bot
 
@@ -22,11 +21,6 @@ async def startup(bot: Bot, db: Database):
     await asyncio.sleep(1)
     await add_logs('Бот запущен')
     asyncio.create_task(update_all_prices(bot, db))
-
-
-async def shutdown():
-    """Завершение работы бота"""
-    await add_logs('Бот остановлен')
 
 
 async def update_all_prices(bot: Bot, db: Database):
@@ -57,8 +51,6 @@ async def update_all_prices(bot: Bot, db: Database):
                         tg_user_id,
                         answers.price_fall_new_desired(new_desired_price)
                     )
-                # если в наличии <= 3 шт товара
-                # и уведомление ещё не отправлялось
                 if count > 0 and count <= 3 and not product.notification:
                     await bot.send_message(
                         tg_user_id,

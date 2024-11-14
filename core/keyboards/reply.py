@@ -33,6 +33,6 @@ def yes_or_no(placeholder: str = ''):
     kb.button(text='Отмена')
     kb.adjust(2, 1)
     return kb.as_markup(
-         resize_keyboard=True,
+        resize_keyboard=True,
         input_field_placeholder=placeholder
     )

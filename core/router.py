@@ -7,7 +7,6 @@ from core.states import AddProductStates, UpdateProductStates
 
 core_router = Router()
 core_router.startup.register(basic.startup)
-core_router.shutdown.register(basic.shutdown)
 core_router.message.register(product.start, Command('start'))
 core_router.message.register(product.add_product, F.text == 'Добавить')
 core_router.message.register(product.tracked_products, F.text == 'Отслеживаемые')

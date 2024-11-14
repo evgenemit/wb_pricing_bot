@@ -1,15 +1,8 @@
 import aiofiles
-from aiogram import Bot, types
+from aiogram import types
 
 from core.handlers.product import main_menu
 from core.services.database import Database
-
-
-async def send_for_admins(text: str, bot: Bot, db: Database):
-    """Отправляет сообщение всем администраторам"""
-    admins_ids = await db.get_admins()
-    for admin_id in admins_ids:
-        await bot.send_message(admin_id, text)
 
 
 async def get_logs(msg: types.Message, db: Database) -> None:
