@@ -36,8 +36,8 @@ async def get_product_data(
     return name, price, count
 
 
-def parse_price(price: str) -> Decimal:
-    if not price:
+def parse_price(price: str) -> Decimal | int:
+    if not price or type(price) != str:
         return -1
     price = price.replace(',', '.').replace(' ', '')
     if not price.replace('.', '').isdigit():
