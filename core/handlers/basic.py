@@ -5,6 +5,7 @@ from aiogram import Bot
 
 from core.services import wb_parser, answers
 from core.services.database import Database
+from core.keyboards.inline import open_on_wb_keyboard
 
 
 async def add_logs(text: str):
@@ -40,7 +41,8 @@ async def update_all_prices(bot: Bot, db: Database):
                     )
                     await bot.send_message(
                         tg_user_id,
-                        answers.price_fall(new_name, new_price)
+                        answers.price_fall(new_name, new_price),
+                        reply_markup=open_on_wb_keyboard(product.article)
                     )
                     new_desired_price = int(new_price * 95) / 100
                     await db.update_desired_price(

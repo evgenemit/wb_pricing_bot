@@ -37,6 +37,7 @@ async def get_product_data(
 
 
 def parse_price(price: str) -> Decimal | int:
+    """Преобразует цену из строки в Decimal"""
     if not price or type(price) != str:
         return -1
     price = price.replace(',', '.').replace(' ', '')
@@ -45,3 +46,8 @@ def parse_price(price: str) -> Decimal | int:
     if '.' not in price:
         price += '.0'
     return Decimal(price)
+
+
+def create_wb_link(article: str) -> str:
+    """Возвращает ссылку на товар на wb по артикулу"""
+    return f'https://www.wildberries.by/catalog/{article}/detail.aspx'
