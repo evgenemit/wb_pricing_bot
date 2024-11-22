@@ -36,7 +36,7 @@ async def update_all_prices(bot: Bot, db: Database):
                     continue
                 new_name, new_price, count = new_data
                 await db.update_product(
-                    product.item_id, new_price, new_name, count
+                    product.item_id, product.last_price, new_name, count
                 )
                 if new_price <= product.desired_price:
                     await add_logs(
