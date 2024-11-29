@@ -2,3 +2,5 @@ aiogram
 asyncpg
 environs
 emoji
+toml
+redis[hiredis]

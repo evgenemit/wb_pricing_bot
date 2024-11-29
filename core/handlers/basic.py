@@ -1,9 +1,11 @@
 import aiofiles
 import asyncio
 import datetime
+import emoji
 from aiogram import Bot
 
-from core.services import wb_parser, answers
+from core.services import wb_parser
+from core.services.answers import answers
 from core.services.database import Database
 from core.keyboards.inline import open_on_wb_keyboard
 
@@ -30,6 +32,7 @@ async def update_all_prices(bot: Bot, db: Database):
         data = await db.get_all_products()
         for user_id in data:
             tg_user_id = await db.get_tg_user_id(user_id)
+            lang = await db.get_user_lang(tg_user_id)
             for product in data[user_id]:
                 new_data = await wb_parser.get_product_data(product.article)
                 if not all(new_data):
@@ -44,8 +47,11 @@ async def update_all_prices(bot: Bot, db: Database):
                     )
                     await bot.send_message(
                         tg_user_id,
-                        answers.price_fall(new_name, new_price),
-                        reply_markup=open_on_wb_keyboard(product.article)
+                        answers[lang]['t20'].format(
+                            emoji=emoji.emojize(":check_mark_button:"),
+                            name=new_name, price=new_price
+                        ),
+                        reply_markup=open_on_wb_keyboard(lang, product.article)
                     )
                     new_desired_price = int(new_price * 95) / 100
                     await db.update_desired_price(
@@ -54,17 +60,21 @@ async def update_all_prices(bot: Bot, db: Database):
                     )
                     await bot.send_message(
                         tg_user_id,
-                        answers.price_fall_new_desired(new_desired_price)
+                        answers[lang]['t21'].format(price=new_desired_price)
                     )
-                if count > 0 and count <= 3 and not product.notification:
+                if count == 1 and not product.notification:
                     await bot.send_message(
                         tg_user_id,
-                        answers.product_count(count, new_name, new_price)
+                        answers[lang]['t22'].format(
+                            emoji=emoji.emojize(":red_exclamation_mark:"),
+                            count=count, name=new_name, price=new_price
+                        ),
+                        reply_markup=open_on_wb_keyboard(lang, product.article)
                     )
                     await db.update_product_notification(
                         product.item_id, True
                     )
-                elif product.notification and count > 3:
+                elif product.notification and count > 1:
                     await db.update_product_notification(
                         product.item_id, False
                     )

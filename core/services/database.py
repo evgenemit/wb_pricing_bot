@@ -1,4 +1,5 @@
 import asyncpg
+import redis
 from pydantic import BaseModel
 from decimal import Decimal
 
@@ -156,3 +157,27 @@ class Database:
         return Product(**(await self.fetchrow(
             f"SELECT id AS item_id, * FROM products WHERE id = {product_id};"
         )))
+
+    async def get_user_lang(self, tg_user_id: int) -> str:
+        """Возвращает язык пользователя"""
+        user = await self.fetchrow(
+            f"SELECT lang FROM users WHERE tg_user_id = '{tg_user_id}';"
+        )
+        if user is None:
+            return 'ru'
+        return user.get('lang')
+
+    async def update_user_lang(self, lang: str, user_id: int) -> None:
+        """Обновляет язык пользователя"""
+        r = redis.Redis(host='localhost', port=6379, decode_responses=True)
+        r.set(f'u_{user_id}', lang)
+        await self.execute(
+            f"""
+            UPDATE users SET lang = '{lang}' WHERE tg_user_id = '{user_id}';
+            """
+        )
+
+    async def get_all_users_ids(self) -> list:
+        """Возвращает список telegram id всех пользователей"""
+        users = await self.fetch("SELECT tg_user_id FROM users;")
+        return list(map(lambda x: x.get('tg_user_id'), users))

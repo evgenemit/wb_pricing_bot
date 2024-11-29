@@ -11,3 +11,8 @@ class AddProductStates(StatesGroup):
 class UpdateProductStates(StatesGroup):
     """Обновление желаемой цены товара"""
     GET_NEW_PRICE = State()
+
+
+class SendMessage(StatesGroup):
+    """Отправка сообщения всем пользователям"""
+    GET_TEXT = State()
