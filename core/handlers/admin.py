@@ -36,6 +36,10 @@ async def send_message(msg: types.Message, bot: Bot, db: Database, state: FSMCon
     users = await db.get_all_users_ids()
     text = msg.text
     for user in users:
-        await bot.send_message(user, text)
+        try:
+            await bot.send_message(user, text)
+        except:
+            print('blocked', user)
     lang = await db.get_user_lang(msg.chat.id)
+    await msg.answer('Отправлено')
     await main_menu(msg, db, lang, state)
